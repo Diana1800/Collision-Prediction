@@ -1,11 +1,9 @@
-# Collision-Prediction
-Deep learning solution for early collision detection from videos
-# Nexar Collision Prediction 🚗💥
+# Collision Prediction 🚗💥
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.7+-orange)](https://pytorch.org/)
 
-Welcome to the **Nexar Collision Prediction** project! This repository contains a deep learning pipeline built with PyTorch that predicts collision events from video sequences. It leverages a ResNet-50 backbone for feature extraction and applies various data augmentations to boost performance.
+Welcome to the **Collision Prediction** project! This repository contains a deep learning pipeline built with PyTorch that predicts collision events from video sequences. It leverages a ResNet-50 backbone for feature extraction and applies various data augmentations to boost performance.
 
 ---
 
@@ -37,8 +35,8 @@ Ensure you download and set up the dataset according to your system's paths.
 
 1. **Clone the Repository:**
     ```bash
-    git clone https://github.com/yourusername/nexar_collision_prediction.git
-    cd nexar_collision_prediction
+    git clone https://github.com/Diana1800/collision_prediction.git
+    cd collision_prediction
     ```
 
 ---
