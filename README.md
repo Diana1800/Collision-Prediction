@@ -27,6 +27,7 @@ Ensure you download and set up the dataset according to your system's paths.
 
 ## Model Architecture 🧠
 
+![image](https://github.com/user-attachments/assets/96a75f61-dd89-49b8-9032-12896bea042a)
 
 
 ---
