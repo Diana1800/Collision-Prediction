@@ -16,6 +16,11 @@ from torchinfo import summary
 
 from sklearn.model_selection import train_test_split
 
+import mlflow
+import mlflow.pytorch
+
+import optuna
+
 # custom training function
 from DLfunctions import Train_model
 
@@ -284,22 +289,73 @@ model = CollisionPredictionModel(num_frames=num_frames, num_classes=1).to(device
 dummy_input = torch.randn(batch_size, num_frames, 3, 128, 128, device=device)
 summary(model, input_data=dummy_input, device=device)
 
-#Training
-criterion = nn.BCEWithLogitsLoss()
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-scheduler = None #torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
-best_model, history = Train_model(
-    model=model,
-    train_loader=train_loader,
-    val_loader=val_loader,
-    criterion=criterion,
-    optimizer=optimizer,
-    scheduler=scheduler,
-    num_epochs=num_epochs,
-    device=device,
-    is_binary=True,
-    save_metric='f1'
-)
+#Training
+
+#MLflow 
+mlflow.set_tracking_uri("http://localhost:5000")  
+experiment_name = "Experiment"
+experiment = mlflow.get_experiment_by_name(experiment_name)
+
+if experiment is None:
+    experiment_id = mlflow.create_experiment(experiment_name)
+else:
+    experiment_id = experiment.experiment_id
+
+mlflow.set_experiment(experiment_name) 
+
+# Optuna 
+def objective(trial):
+    # hyperparameters
+    learning_rate = trial.suggest_float("learning_rate", 1e-3, 1e-1, log=True)
+    batch_size = trial.suggest_categorical("batch_size", [16, 32, 64])
+    num_frames = trial.suggest_int("num_frames", 40, 70)
+
+    criterion = nn.BCEWithLogitsLoss()
+    model = CollisionPredictionModel()  
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    scheduler = None  
+
+    with mlflow.start_run(experiment_id=experiment_id, nested=True):  
+        print(f"Starting Optuna Trial {trial.number}...")
+
+        # Log hyperparameters
+        mlflow.log_param("learning_rate", learning_rate)
+        mlflow.log_param("batch_size", batch_size)
+        mlflow.log_param("num_frames", num_frames)
+
+        # Train the model
+        best_model, history = Train_model(
+            model=model,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            criterion=criterion,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            num_epochs=10, 
+            device=device,
+            is_binary=True,
+            save_metric='f1'
+        )
+
+        # Get best validation F1 score
+        best_val_f1 = max(history["val_f1"]) if "val_f1" in history else 0
+        mlflow.log_metric("best_val_f1", best_val_f1)
+
+        mlflow.pytorch.log_model(model, f"model_trial_{trial.number}")
+
+        print(f"Trial {trial.number} Completed: F1 Score = {best_val_f1}")
+
+    return best_val_f1  # Optuna will maximize this score
+
+# Run Optuna
+study = optuna.create_study(direction="maximize")  
+study.optimize(objective, n_trials=20) 
+
+# Log best parameters to MLflow
+best_params = study.best_params
+mlflow.log_params(best_params)
+
+print(f"Best hyperparameters found: {best_params}")
 
 
