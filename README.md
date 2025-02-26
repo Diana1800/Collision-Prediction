@@ -15,6 +15,8 @@ In this project, we:
 - **Extract features** using a pretrained ResNet-50 model.
 - **Train a collision prediction model** with a custom training loop.
 - **Evaluate performance** using standard metrics, with checkpointing based on the F1 score.
+- **Optimize hyperparameters** automatically using **Optuna**, searching for the best learning rate, batch size, and number of frames.
+- **Track experiments and model performance** systematically with **MLflow**, logging parameters, metrics, and model artifacts after each trial.
 
 ---
 
